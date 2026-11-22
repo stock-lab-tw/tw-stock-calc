@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>台股損益平衡與融資維持率斷頭價試算器｜免費線上工具</title>
+  <meta name="description" content="免費台股交易計算機：即時試算現股、當沖、ETF 手續費折數、證交稅與損益平衡回本價，並提供上市上櫃融資維持率與 130% 斷頭警戒價試算。" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+  <!-- Top Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M14 7h7v7" />
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 truncate">台股損益＆融資斷頭試算器</h1>
+          <p class="text-xs text-slate-500 hidden sm:block">現股・當沖・ETF 回本價與 130% 追繳水位即時計算</p>
+        </div>
+      </div>
+      <button id="btn-copy-summary" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+        </svg>
+        <span>複製試算</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+
+    <!-- Mode Switcher Tabs -->
+    <div class="bg-slate-200/70 p-1 rounded-xl grid grid-cols-2 gap-1" role="tablist" aria-label="試算模式切換">
+      <button id="tab-btn-breakeven" type="button" role="tab" aria-selected="true" aria-controls="panel-breakeven"
+        class="py-2.5 px-3 rounded-lg text-sm font-semibold transition-all bg-white text-slate-900 shadow-sm">
+        現股／當沖損益平衡
+      </button>
+      <button id="tab-btn-margin" type="button" role="tab" aria-selected="false" aria-controls="panel-margin"
+        class="py-2.5 px-3 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900">
+        融資維持率＆斷頭價
+      </button>
+    </div>
+
+    <!-- PANEL 1: Breakeven & PnL -->
+    <section id="panel-breakeven" role="tabpanel" aria-labelledby="tab-btn-breakeven" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Left Inputs Card -->
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">交易類型（影響證交稅）</label>
+            <div class="grid grid-cols-3 gap-1.5" id="trade-type-group">
+              <button type="button" data-trade-type="stock" class="trade-type-btn py-2 px-2 rounded-lg text-xs font-semibold border transition-all bg-slate-900 text-white border-slate-900">
+                一般現股<span class="block text-[10px] font-normal opacity-80">稅 0.3%</span>
+              </button>
+              <button type="button" data-trade-type="daytrade" class="trade-type-btn py-2 px-2 rounded-lg text-xs font-semibold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-50">
+                現股當沖<span class="block text-[10px] font-normal opacity-75">稅 0.15%</span>
+              </button>
+              <button type="button" data-trade-type="etf" class="trade-type-btn py-2 px-2 rounded-lg text-xs font-semibold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-50">
+                台股 ETF<span class="block text-[10px] font-normal opacity-75">稅 0.1%</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="be-buy-price" class="block text-sm font-medium text-slate-700 mb-1.5">買進股價 (元)</label>
+              <input id="be-buy-price" type="number" step="any" min="0.01" value="100"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900" />
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="be-qty" class="text-sm font-medium text-slate-700">買進數量</label>
+                <div class="inline-flex rounded-md bg-slate-100 p-0.5 text-[11px] font-semibold">
+                  <button type="button" id="unit-lot" class="px-2 py-0.5 rounded bg-white text-slate-900 shadow-sm">張</button>
+                  <button type="button" id="unit-share" class="px-2 py-0.5 rounded text-slate-500">股</button>
+                </div>
+              </div>
+              <input id="be-qty" type="number" step="1" min="1" value="1"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900" />
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="be-discount" class="text-sm font-medium text-slate-700">手續費折數 (0.1425% × 折數)</label>
+              <span class="text-xs text-slate-400">例：2.8 折填 2.8</span>
+            </div>
+            <div class="flex gap-2">
+              <input id="be-discount" type="number" step="0.1" min="0" max="10" value="2.8"
+                class="w-24 px-3 py-2 rounded-xl border border-slate-300 text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900" />
+              <div class="flex-1 grid grid-cols-3 gap-1.5">
+                <button type="button" data-discount="2.8" class="discount-preset py-2 rounded-lg text-xs font-medium border border-slate-200 hover:bg-slate-100 text-slate-700">2.8 折</button>
+                <button type="button" data-discount="6" class="discount-preset py-2 rounded-lg text-xs font-medium border border-slate-200 hover:bg-slate-100 text-slate-700">6 折</button>
+                <button type="button" data-discount="10" class="discount-preset py-2 rounded-lg text-xs font-medium border border-slate-200 hover:bg-slate-100 text-slate-700">無折扣</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="be-min-fee" class="block text-sm font-medium text-slate-700 mb-1.5">手續費低消 (元)</label>
+              <input id="be-min-fee" type="number" step="1" min="0" value="20"
+                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900" />
+            </div>
+            <div>
+              <label for="be-sell-price" class="block text-sm font-medium text-slate-700 mb-1.5">目標賣價 (選填)</label>
+              <input id="be-sell-price" type="number" step="any" min="0" placeholder="輸入看實際賺賠"
+                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Results Card -->
+        <div class="lg:col-span-7 space-y-4">
+          <!-- Primary Highlight -->
+          <div class="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="text-xs font-medium text-slate-400">實際不賠錢最低賣價（符合台股升降單位）</p>
+                <div class="flex items-baseline gap-2.5 mt-1">
+                  <span id="out-be-tick-price" class="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums">--</span>
+                  <span class="text-sm text-slate-300">元</span>
+                </div>
+                <p id="out-be-ticks-note" class="text-xs text-slate-300 mt-1.5 tabular-nums">需上漲 -- 檔（+--%）才開始獲利</p>
+              </div>
+              <div class="bg-slate-800/90 rounded-xl px-4 py-3 text-right border border-slate-700/70">
+                <p class="text-[11px] text-slate-400">理論精確損益平衡價</p>
+                <p id="out-be-exact-price" class="text-lg font-bold tabular-nums text-amber-300 mt-0.5">-- 元</p>
+              </div>
+            </div>
+
+            <!-- Target Sell PnL Box (shown when sell price entered) -->
+            <div id="target-pnl-box" class="hidden mt-4 pt-4 border-t border-slate-700/80 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="text-xs text-slate-400">若以 <span id="out-target-sell-label" class="text-white font-semibold tabular-nums">--</span> 元賣出，預估淨損益</p>
+                <p id="out-target-pnl" class="text-2xl font-bold tabular-nums mt-0.5">--</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-slate-400">實際報酬率</p>
+                <p id="out-target-roi" class="text-xl font-bold tabular-nums mt-0.5">--</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cost Breakdown Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white rounded-xl border border-slate-200 p-3.5">
+              <p class="text-xs text-slate-500">買進總成本</p>
+              <p id="out-buy-total" class="text-base font-bold text-slate-900 tabular-nums mt-1">--</p>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-3.5">
+              <p class="text-xs text-slate-500">買進手續費</p>
+              <p id="out-buy-fee" class="text-base font-bold text-slate-900 tabular-nums mt-1">--</p>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-3.5">
+              <p class="text-xs text-slate-500">賣出手續費</p>
+              <p id="out-sell-fee" class="text-base font-bold text-slate-900 tabular-nums mt-1">--</p>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-3.5">
+              <p class="text-xs text-slate-500">證交稅（賣出）</p>
+              <p id="out-tax" class="text-base font-bold text-slate-900 tabular-nums mt-1">--</p>
+            </div>
+          </div>
+
+          <!-- Quick Stop-Loss / Take-Profit Table -->
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+              <h2 class="text-sm font-bold text-slate-900">常用停利／停損價位速查（已扣交易成本）</h2>
+              <span class="text-[11px] text-slate-400">紅賺／綠賠</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-xs text-slate-500 border-b border-slate-100">
+                  <tr>
+                    <th class="py-2.5 px-4 font-semibold">目標漲跌</th>
+                    <th class="py-2.5 px-4 font-semibold text-right">對應合法股價</th>
+                    <th class="py-2.5 px-4 font-semibold text-right">預估淨損益 (NT$)</th>
+                    <th class="py-2.5 px-4 font-semibold text-right">實質報酬率</th>
+                  </tr>
+                </thead>
+                <tbody id="be-scenario-tbody" class="divide-y divide-slate-100 tabular-nums"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 2: Margin Maintenance & Liquidation -->
+    <section id="panel-margin" role="tabpanel" aria-labelledby="tab-btn-margin" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Left Inputs -->
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">融資成數（券商借出比例）</label>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button type="button" data-margin-ratio="60" class="margin-ratio-btn py-2 px-2 rounded-lg text-xs font-semibold border transition-all bg-slate-900 text-white border-slate-900">
+                上市 6 成<span class="block text-[10px] font-normal opacity-80">自備 40%</span>
+              </button>
+              <button type="button" data-margin-ratio="50" class="margin-ratio-btn py-2 px-2 rounded-lg text-xs font-semibold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-50">
+                上櫃 5 成<span class="block text-[10px] font-normal opacity-75">自備 50%</span>
+              </button>
+              <button type="button" data-margin-ratio="custom" class="margin-ratio-btn py-2 px-2 rounded-lg text-xs font-semibold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-50">
+                自訂成數<span class="block text-[10px] font-normal opacity-75">手動調整</span>
+              </button>
+            </div>
+            <div id="custom-ratio-wrap" class="hidden mt-2.5">
+              <label for="mg-custom-ratio" class="block text-xs font-medium text-slate-600 mb-1">自訂融資成數 (%)</label>
+              <input id="mg-custom-ratio" type="number" min="10" max="80" step="5" value="60"
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="mg-buy-price" class="block text-sm font-medium text-slate-700 mb-1.5">融資買進價 (元)</label>
+              <input id="mg-buy-price" type="number" step="any" min="0.01" value="100"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900" />
+            </div>
+            <div>
+              <label for="mg-lots" class="block text-sm font-medium text-slate-700 mb-1.5">買進張數 (張)</label>
+              <input id="mg-lots" type="number" step="1" min="1" value="1"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900" />
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="mg-cur-price" class="text-sm font-medium text-slate-700">目前股價模擬 (元)</label>
+              <span id="mg-price-chg-badge" class="text-xs font-semibold tabular-nums px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">0.0%</span>
+            </div>
+            <input id="mg-cur-price" type="number" step="any" min="0.01" value="85"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900 mb-2.5" />
+            <input id="mg-cur-slider" type="range" min="40" max="150" step="0.5" value="85"
+              class="w-full accent-slate-900 cursor-pointer" aria-label="拖曳模擬目前股價" />
+            <div class="flex justify-between text-[11px] text-slate-400 tabular-nums mt-1">
+              <span id="mg-slider-min">40 元</span>
+              <span>拖曳滑桿即時看維持率變化</span>
+              <span id="mg-slider-max">150 元</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+            <div>
+              <label for="mg-interest-rate" class="block text-xs font-medium text-slate-600 mb-1">融資年利率 (%)</label>
+              <input id="mg-interest-rate" type="number" step="0.1" min="0" max="20" value="6.5"
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900" />
+            </div>
+            <div>
+              <label for="mg-days" class="block text-xs font-medium text-slate-600 mb-1">預計持有天數</label>
+              <input id="mg-days" type="number" step="1" min="1" value="30"
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-900" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Margin Results -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="text-xs font-medium text-slate-400">目前融資維持率</p>
+                <div class="flex items-center gap-3 mt-1">
+                  <span id="out-mg-ratio" class="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums">--%</span>
+                  <span id="out-mg-status" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300">--</span>
+                </div>
+              </div>
+              <div class="bg-rose-500/15 border border-rose-400/30 rounded-xl px-4 py-3 text-right">
+                <p class="text-[11px] text-rose-200">130% 追繳斷頭警戒價</p>
+                <p id="out-mg-call-price" class="text-xl font-bold tabular-nums text-rose-300 mt-0.5">-- 元</p>
+                <p id="out-mg-call-drop" class="text-[11px] text-rose-200/80 tabular-nums mt-0.5">距買價跌 --%</p>
+              </div>
+            </div>
+
+            <!-- Visual Safety Gauge -->
+            <div>
+              <div class="flex justify-between text-[11px] text-slate-400 mb-1.5 tabular-nums">
+                <span>100%</span>
+                <span class="text-rose-300 font-semibold">130% 追繳線</span>
+                <span class="text-emerald-300 font-semibold">166% 安全線</span>
+                <span>220%+</span>
+              </div>
+              <div class="h-3.5 w-full rounded-full bg-slate-800 overflow-hidden relative">
+                <div class="absolute inset-y-0 left-0 w-[25%] bg-rose-500/30"></div>
+                <div class="absolute inset-y-0 left-[25%] w-[30%] bg-amber-500/30"></div>
+                <div class="absolute inset-y-0 left-[55%] right-0 bg-emerald-500/30"></div>
+                <div id="out-mg-bar" class="h-full rounded-full transition-all duration-200 bg-emerald-400" style="width: 50%"></div>
+              </div>
+              <p id="out-mg-buffer-note" class="text-xs text-slate-300 mt-2.5 tabular-nums">--</p>
+            </div>
+
+            <!-- Margin Call Top-up Box (shown when < 130%) -->
+            <div id="mg-topup-box" class="hidden rounded-xl bg-rose-950/70 border border-rose-500/40 p-4 space-y-1.5">
+              <p class="text-xs font-bold text-rose-300">已低於 130% 追繳線！補繳試算參考：</p>
+              <p class="text-sm text-rose-100 tabular-nums">
+                • 補回 <strong class="text-white">130%</strong> 最低門檻：需補繳約 <strong id="out-mg-topup-130" class="text-amber-300">--</strong> 元
+              </p>
+              <p class="text-sm text-rose-100 tabular-nums">
+                • 補回 <strong class="text-white">166%</strong> 撤銷追繳：需補繳約 <strong id="out-mg-topup-166" class="text-amber-300">--</strong> 元
+              </p>
+            </div>
+          </div>
+
+          <!-- Margin Capital Breakdown -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white rounded-xl border border-slate-200 p-3.5">
+              <p class="text-xs text-slate-500">原始自備款</p>
+              <p id="out-mg-equity" class="text-base font-bold text-slate-900 tabular-nums mt-1">--</p>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-3.5">
+              <p class="text-xs text-slate-500">融資借款金額</p>
+              <p id="out-mg-loan" class="text-base font-bold text-slate-900 tabular-nums mt-1">--</p>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-3.5">
+              <p class="text-xs text-slate-500">目前股票市值</p>
+              <p id="out-mg-mktval" class="text-base font-bold text-slate-900 tabular-nums mt-1">--</p>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-3.5">
+              <p class="text-xs text-slate-500">預估融資利息</p>
+              <p id="out-mg-interest" class="text-base font-bold text-slate-900 tabular-nums mt-1">--</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEO-Friendly FAQ & Tick Size Reference -->
+    <section class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+      <h2 class="text-base font-bold text-slate-900">常見問題與台股交易規則說明</h2>
+      <div class="divide-y divide-slate-100 text-sm">
+        <details class="py-3 group" open>
+          <summary class="font-semibold text-slate-800 cursor-pointer list-none flex items-center justify-between">
+            <span>台股手續費與證交稅怎麼計算？</span>
+            <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <p class="text-slate-600 mt-2 leading-relaxed">
+            公定手續費為成交金額的 <strong>0.1425%</strong>（買進與賣出各收一次，不足最低消費通常收 20 元，部分券商零股低消為 1 元），電子下單多提供折讓（例如 2.8 折或 6 折）。證交稅僅在<strong>賣出時收取</strong>：一般股票為 0.3%、現股當沖減半為 0.15%、台股 ETF 為 0.1%。
+          </p>
+        </details>
+        <details class="py-3 group">
+          <summary class="font-semibold text-slate-800 cursor-pointer list-none flex items-center justify-between">
+            <span>融資維持率低於 130% 會發生什麼事？</span>
+            <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <p class="text-slate-600 mt-2 leading-relaxed">
+            融資維持率公式為「（目前股票市值 ÷ 融資借款金額）× 100%」。當整戶維持率收盤低於 <strong>130%</strong> 時，券商會發出追繳通知（T 日），投資人需於 2 個營業日內（T+2 日）補繳自備款將維持率拉回 130% 以上（若拉回 166% 以上才可撤銷追繳紀錄），否則隔日（T+3 日）開盤將面臨券商強制處分（俗稱斷頭）。
+          </p>
+        </details>
+        <details class="py-3 group">
+          <summary class="font-semibold text-slate-800 cursor-pointer list-none flex items-center justify-between">
+            <span>台股股價跳動一檔（升降單位）是多少？</span>
+            <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div class="mt-2.5 grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs tabular-nums">
+            <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-100"><span class="text-slate-500 block">未滿 10 元</span><strong class="text-slate-900">0.01 元</strong></div>
+            <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-100"><span class="text-slate-500 block">10 ～ 未滿 50 元</span><strong class="text-slate-900">0.05 元</strong></div>
+            <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-100"><span class="text-slate-500 block">50 ～ 未滿 100 元</span><strong class="text-slate-900">0.1 元</strong></div>
+            <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-100"><span class="text-slate-500 block">100 ～ 未滿 500 元</span><strong class="text-slate-900">0.5 元</strong></div>
+            <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-100"><span class="text-slate-500 block">500 ～ 未滿 1,000 元</span><strong class="text-slate-900">1 元</strong></div>
+            <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-100"><span class="text-slate-500 block">1,000 元以上</span><strong class="text-slate-900">5 元</strong></div>
+          </div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 bg-white mt-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-5 text-center text-xs text-slate-400 space-y-1">
+      <p>免責聲明：本試算工具僅供交易成本與風險概念參考，實際手續費折讓、融資成數、利息與整戶追繳規定請依各券商公告為準。</p>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" role="status" aria-live="polite"
+    class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-medium shadow-lg opacity-0 pointer-events-none transition-opacity duration-200 max-w-[90vw] text-center">
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // State
+      const state = {
+        activeTab: 'breakeven',
+        tradeType: 'stock', // 'stock' | 'daytrade' | 'etf'
+        unit: 'lot',        // 'lot' | 'share'
+        marginMode: '60',   // '60' | '50' | 'custom'
+      };
+
+      const TAX_RATES = {
+        stock: 0.003,
+        daytrade: 0.0015,
+        etf: 0.001,
+      };
+      const BASE_FEE_RATE = 0.001425;
+
+      // DOM helpers
+      const $ = (id) => document.getElementById(id);
+
+      // Format helpers
+      function fmtInt(n) {
+        if (!Number.isFinite(n)) return '--';
+        return Math.round(n).toLocaleString('zh-TW');
+      }
+      function fmtPrice(p) {
+        if (!Number.isFinite(p) || p <= 0) return '--';
+        if (p < 10) return p.toFixed(2);
+        if (p < 50) return p.toFixed(2);
+        if (p < 500) return Number(p.toFixed(2)).toString();
+        return Number(p.toFixed(1)).toString();
+      }
+
+      // Taiwan Stock Exchange tick size rules
+      function getTickSize(price) {
+        if (price < 10) return 0.01;
+        if (price < 50) return 0.05;
+        if (price < 100) return 0.1;
+        if (price < 500) return 0.5;
+        if (price < 1000) return 1;
+        return 5;
+      }
+
+      function nextValidTick(price) {
+        const tick = getTickSize(price);
+        return Math.round((price + tick) * 1000) / 1000;
+      }
+
+      function snapToValidTick(price, mode) {
+        if (!Number.isFinite(price) || price <= 0) return 0.01;
+        const tick = getTickSize(price);
+        let snapped;
+        if (mode === 'ceil') {
+          snapped = Math.ceil((price - 1e-9) / tick) * tick;
+        } else if (mode === 'floor') {
+          snapped = Math.floor((price + 1e-9) / tick) * tick;
+        } else {
+          snapped = Math.round(price / tick) * tick;
+        }
+        return Math.max(0.01, Math.round(snapped * 1000) / 1000);
+      }
+
+      function countTicksBetween(fromPrice, toPrice) {
+        if (toPrice <= fromPrice) return 0;
+        let p = snapToValidTick(fromPrice, 'round');
+        let ticks = 0;
+        while (p < toPrice - 1e-9 && ticks < 5000) {
+          p = nextValidTick(p);
+          ticks += 1;
+        }
+        return ticks;
+      }
+
+      function calcFee(amount, discount, minFee) {
+        const raw = Math.floor(amount * BASE_FEE_RATE * (discount / 10));
+        return Math.max(minFee, raw);
+      }
+
+      function calcNetPnL(buyPrice, sellPrice, shares, discount, minFee, taxRate) {
+        const buyAmt = buyPrice * shares;
+        const sellAmt = sellPrice * shares;
+        const buyFee = calcFee(buyAmt, discount, minFee);
+        const sellFee = calcFee(sellAmt, discount, minFee);
+        const tax = Math.floor(sellAmt * taxRate);
+        const totalCost = buyAmt + buyFee;
+        const netProceeds = sellAmt - sellFee - tax;
+        const netPnL = netProceeds - totalCost;
+        const roi = totalCost > 0 ? (netPnL / totalCost) * 100 : 0;
+        return { buyAmt, sellAmt, buyFee, sellFee, tax, totalCost, netPnL, roi };
+      }
+
+      // Toast helper
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = $('toast');
+        el.textContent = msg;
+        el.classList.remove('opacity-0');
+        el.classList.add('opacity-100');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          el.classList.remove('opacity-100');
+          el.classList.add('opacity-0');
+        }, 2600);
+      }
+
+      // Render Panel 1: Breakeven
+      function renderBreakeven() {
+        const buyPrice = parseFloat($('be-buy-price').value);
+        const qtyRaw = parseFloat($('be-qty').value);
+        const discount = parseFloat($('be-discount').value);
+        const minFee = parseFloat($('be-min-fee').value);
+        const sellPriceInput = parseFloat($('be-sell-price').value);
+
+        const validBuy = Number.isFinite(buyPrice) && buyPrice > 0;
+        const validQty = Number.isFinite(qtyRaw) && qtyRaw > 0;
+        const safeDiscount = Number.isFinite(discount) && discount >= 0 ? discount : 10;
+        const safeMinFee = Number.isFinite(minFee) && minFee >= 0 ? minFee : 20;
+        const taxRate = TAX_RATES[state.tradeType];
+
+        if (!validBuy || !validQty) {
+          $('out-be-tick-price').textContent = '--';
+          $('out-be-exact-price').textContent = '-- 元';
+          $('out-be-ticks-note').textContent = '請輸入有效的買進股價與數量';
+          $('out-buy-total').textContent = '--';
+          $('out-buy-fee').textContent = '--';
+          $('out-sell-fee').textContent = '--';
+          $('out-tax').textContent = '--';
+          $('be-scenario-tbody').innerHTML = '';
+          $('target-pnl-box').classList.add('hidden');
+          return;
+        }
+
+        const shares = state.unit === 'lot' ? Math.round(qtyRaw * 1000) : Math.round(qtyRaw);
+        const buyAmt = buyPrice * shares;
+        const buyFee = calcFee(buyAmt, safeDiscount, safeMinFee);
+        const totalCost = buyAmt + buyFee;
+
+        // Exact breakeven price estimation (handling minFee vs proportional fee)
+        const effFeeRate = BASE_FEE_RATE * (safeDiscount / 10);
+        let exactBE = totalCost / (shares * (1 - effFeeRate - taxRate));
+        if (exactBE * shares * effFeeRate < safeMinFee) {
+          exactBE = (totalCost + safeMinFee) / (shares * (1 - taxRate));
+        }
+
+        // Find smallest valid Taiwan tick price where netPnL >= 0
+        let tickBE = snapToValidTick(exactBE, 'ceil');
+        let safetyLoop = 0;
+        while (calcNetPnL(buyPrice, tickBE, shares, safeDiscount, safeMinFee, taxRate).netPnL < 0 && safetyLoop < 50) {
+          tickBE = nextValidTick(tickBE);
+          safetyLoop += 1;
+        }
+
+        const ticksNeeded = countTicksBetween(buyPrice, tickBE);
+        const pctNeeded = ((tickBE - buyPrice) / buyPrice) * 100;
+
+        // Reference breakdown at breakeven sell price (or target sell price if entered)
+        const refSellPrice = Number.isFinite(sellPriceInput) && sellPriceInput > 0 ? sellPriceInput : tickBE;
+        const refStats = calcNetPnL(buyPrice, refSellPrice, shares, safeDiscount, safeMinFee, taxRate);
+
+        $('out-be-tick-price').textContent = fmtPrice(tickBE);
+        $('out-be-exact-price').textContent = `${exactBE.toFixed(2)} 元`;
+        $('out-be-ticks-note').textContent = `需上漲 ${ticksNeeded} 檔（+${pctNeeded.toFixed(2)}%）才不會賠錢`;
+
+        $('out-buy-total').textContent = `NT$ ${fmtInt(refStats.totalCost)}`;
+        $('out-buy-fee').textContent = `NT$ ${fmtInt(refStats.buyFee)}`;
+        $('out-sell-fee').textContent = `NT$ ${fmtInt(refStats.sellFee)}`;
+        $('out-tax').textContent = `NT$ ${fmtInt(refStats.tax)}`;
+
+        // Target sell price box
+        if (Number.isFinite(sellPriceInput) && sellPriceInput > 0) {
+          $('target-pnl-box').classList.remove('hidden');
+          $('out-target-sell-label').textContent = fmtPrice(sellPriceInput);
+          const sign = refStats.netPnL > 0 ? '+' : '';
+          const colorCls = refStats.netPnL > 0 ? 'text-rose-400' : refStats.netPnL < 0 ? 'text-emerald-400' : 'text-slate-200';
+          $('out-target-pnl').className = `text-2xl font-bold tabular-nums mt-0.5 ${colorCls}`;
+          $('out-target-pnl').textContent = `${sign}NT$ ${fmtInt(refStats.netPnL)}`;
+          $('out-target-roi').className = `text-xl font-bold tabular-nums mt-0.5 ${colorCls}`;
+          $('out-target-roi').textContent = `${sign}${refStats.roi.toFixed(2)}%`;
+        } else {
+          $('target-pnl-box').classList.add('hidden');
+        }
+
+        // Quick scenario table
+        const scenarios = [
+          { label: '停損 -10%', pct: -0.10 },
+          { label: '停損 -5%', pct: -0.05 },
+          { label: '回本價', pct: null, price: tickBE },
+          { label: '停利 +3%', pct: 0.03 },
+          { label: '停利 +5%', pct: 0.05 },
+          { label: '停利 +10%', pct: 0.10 },
+          { label: '停利 +20%', pct: 0.20 },
+        ];
+
+        const rowsHtml = scenarios.map((sc) => {
+          const targetP = sc.price !== undefined ? sc.price : snapToValidTick(buyPrice * (1 + sc.pct), 'round');
+          const res = calcNetPnL(buyPrice, targetP, shares, safeDiscount, safeMinFee, taxRate);
+          const sign = res.netPnL > 0 ? '+' : '';
+          const textColor = res.netPnL > 0 ? 'text-rose-600' : res.netPnL < 0 ? 'text-emerald-600' : 'text-slate-700';
+          const rowBg = sc.pct === null ? 'bg-amber-50/70 font-semibold' : '';
+          return `
+            <tr class="${rowBg}">
+              <td class="py-2.5 px-4 text-slate-700">${sc.label}</td>
+              <td class="py-2.5 px-4 text-right font-semibold text-slate-900">${fmtPrice(targetP)} 元</td>
+              <td class="py-2.5 px-4 text-right font-semibold ${textColor}">${sign}${fmtInt(res.netPnL)}</td>
+              <td class="py-2.5 px-4 text-right font-semibold ${textColor}">${sign}${res.roi.toFixed(2)}%</td>
+            </tr>
+          `;
+        }).join('');
+        $('be-scenario-tbody').innerHTML = rowsHtml;
+      }
+
+      // Render Panel 2: Margin Maintenance
+      function renderMargin() {
+        const buyPrice = parseFloat($('mg-buy-price').value);
+        const lots = parseFloat($('mg-lots').value);
+        const curPrice = parseFloat($('mg-cur-price').value);
+        const rate = parseFloat($('mg-interest-rate').value);
+        const days = parseFloat($('mg-days').value);
+
+        let ratioPct = 60;
+        if (state.marginMode === '50') ratioPct = 50;
+        else if (state.marginMode === 'custom') {
+          const customVal = parseFloat($('mg-custom-ratio').value);
+          ratioPct = Number.isFinite(customVal) && customVal > 0 && customVal <= 90 ? customVal : 60;
+        }
+        const financingRatio = ratioPct / 100;
+
+        if (!Number.isFinite(buyPrice) || buyPrice <= 0 || !Number.isFinite(lots) || lots <= 0 || !Number.isFinite(curPrice) || curPrice <= 0) {
+          $('out-mg-ratio').textContent = '--%';
+          $('out-mg-call-price').textContent = '-- 元';
+          return;
+        }
+
+        const shares = Math.round(lots * 1000);
+        const buyAmt = buyPrice * shares;
+        // Standard Taiwan margin loan rounded to nearest thousand (minimum 1,000)
+        const loanAmt = Math.max(1000, Math.floor((buyAmt * financingRatio) / 1000) * 1000);
+        const equityAmt = buyAmt - loanAmt;
+        const mktVal = curPrice * shares;
+        const maintRatio = (mktVal / loanAmt) * 100;
+
+        // 130% margin call price
+        const callPriceExact = (loanAmt * 1.3) / shares;
+        const callDropPct = ((buyPrice - callPriceExact) / buyPrice) * 100;
+
+        // Interest estimate
+        const safeRate = Number.isFinite(rate) && rate >= 0 ? rate : 0;
+        const safeDays = Number.isFinite(days) && days > 0 ? days : 1;
+        const estInterest = Math.round(loanAmt * (safeRate / 100) * (safeDays / 365));
+
+        // Update price change badge
+        const priceChgPct = ((curPrice - buyPrice) / buyPrice) * 100;
+        const badgeEl = $('mg-price-chg-badge');
+        const chgSign = priceChgPct > 0 ? '+' : '';
+        badgeEl.textContent = `距買價 ${chgSign}${priceChgPct.toFixed(1)}%`;
+        if (priceChgPct > 0) {
+          badgeEl.className = 'text-xs font-semibold tabular-nums px-2 py-0.5 rounded-full bg-rose-50 text-rose-600';
+        } else if (priceChgPct < 0) {
+          badgeEl.className = 'text-xs font-semibold tabular-nums px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700';
+        } else {
+          badgeEl.className = 'text-xs font-semibold tabular-nums px-2 py-0.5 rounded-full bg-slate-100 text-slate-700';
+        }
+
+        // Main outputs
+        $('out-mg-ratio').textContent = `${maintRatio.toFixed(1)}%`;
+        $('out-mg-call-price').textContent = `${callPriceExact.toFixed(2)} 元`;
+        $('out-mg-call-drop').textContent = `距買價跌 ${callDropPct.toFixed(1)}% 觸及`;
+
+        // Status & Gauge
+        const statusEl = $('out-mg-status');
+        const barEl = $('out-mg-bar');
+        const pctWidth = Math.max(4, Math.min(100, ((maintRatio - 100) / 120) * 100));
+        barEl.style.width = `${pctWidth}%`;
+
+        if (maintRatio < 130) {
+          statusEl.textContent = '觸及追繳警戒';
+          statusEl.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/25 text-rose-300';
+          barEl.className = 'h-full rounded-full transition-all duration-200 bg-rose-500';
+          const diffBelow = callPriceExact - curPrice;
+          $('out-mg-buffer-note').textContent = `目前股價已低於 130% 追繳價 ${diffBelow.toFixed(2)} 元，收盤若未站回將收到券商追繳通知。`;
+
+          // Top-up calculation: to reduce loanAmt so mktVal / (loanAmt - topup) >= target
+          const topup130 = Math.max(0, Math.ceil(loanAmt - mktVal / 1.3));
+          const topup166 = Math.max(0, Math.ceil(loanAmt - mktVal / 1.66));
+          $('mg-topup-box').classList.remove('hidden');
+          $('out-mg-topup-130').textContent = `NT$ ${fmtInt(topup130)}`;
+          $('out-mg-topup-166').textContent = `NT$ ${fmtInt(topup166)}`;
+        } else if (maintRatio < 166) {
+          statusEl.textContent = '水位偏低注意';
+          statusEl.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/25 text-amber-300';
+          barEl.className = 'h-full rounded-full transition-all duration-200 bg-amber-400';
+          const bufferPct = ((curPrice - callPriceExact) / curPrice) * 100;
+          $('out-mg-buffer-note').textContent = `距離 130% 斷頭警戒價還有 ${(curPrice - callPriceExact).toFixed(2)} 元（約 ${bufferPct.toFixed(1)}% 緩衝空間）。`;
+          $('mg-topup-box').classList.add('hidden');
+        } else {
+          statusEl.textContent = '維持率安全';
+          statusEl.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/25 text-emerald-300';
+          barEl.className = 'h-full rounded-full transition-all duration-200 bg-emerald-400';
+          const bufferPct = ((curPrice - callPriceExact) / curPrice) * 100;
+          $('out-mg-buffer-note').textContent = `距離 130% 斷頭警戒價還有 ${(curPrice - callPriceExact).toFixed(2)} 元（約 ${bufferPct.toFixed(1)}% 下跌空間）。`;
+          $('mg-topup-box').classList.add('hidden');
+        }
+
+        $('out-mg-equity').textContent = `NT$ ${fmtInt(equityAmt)}`;
+        $('out-mg-loan').textContent = `NT$ ${fmtInt(loanAmt)}`;
+        $('out-mg-mktval').textContent = `NT$ ${fmtInt(mktVal)}`;
+        $('out-mg-interest').textContent = `NT$ ${fmtInt(estInterest)}`;
+      }
+
+      function syncSliderBounds() {
+        const buyPrice = parseFloat($('mg-buy-price').value);
+        if (!Number.isFinite(buyPrice) || buyPrice <= 0) return;
+        const minP = Math.max(0.5, Math.round(buyPrice * 0.4 * 10) / 10);
+        const maxP = Math.round(buyPrice * 1.5 * 10) / 10;
+        const slider = $('mg-cur-slider');
+        slider.min = minP;
+        slider.max = maxP;
+        slider.step = getTickSize(buyPrice);
+        $('mg-slider-min').textContent = `${fmtPrice(minP)} 元`;
+        $('mg-slider-max').textContent = `${fmtPrice(maxP)} 元`;
+      }
+
+      // Tab Switching
+      function setActiveTab(tab) {
+        state.activeTab = tab;
+        const isBE = tab === 'breakeven';
+        $('panel-breakeven').classList.toggle('hidden', !isBE);
+        $('panel-margin').classList.toggle('hidden', isBE);
+
+        $('tab-btn-breakeven').setAttribute('aria-selected', String(isBE));
+        $('tab-btn-margin').setAttribute('aria-selected', String(!isBE));
+
+        $('tab-btn-breakeven').className = isBE
+          ? 'py-2.5 px-3 rounded-lg text-sm font-semibold transition-all bg-white text-slate-900 shadow-sm'
+          : 'py-2.5 px-3 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900';
+        $('tab-btn-margin').className = !isBE
+          ? 'py-2.5 px-3 rounded-lg text-sm font-semibold transition-all bg-white text-slate-900 shadow-sm'
+          : 'py-2.5 px-3 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900';
+      }
+
+      $('tab-btn-breakeven').addEventListener('click', () => setActiveTab('breakeven'));
+      $('tab-btn-margin').addEventListener('click', () => setActiveTab('margin'));
+
+      // Trade Type Buttons
+      document.querySelectorAll('.trade-type-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.tradeType = btn.dataset.tradeType;
+          document.querySelectorAll('.trade-type-btn').forEach((b) => {
+            const active = b.dataset.tradeType === state.tradeType;
+            b.className = active
+              ? 'trade-type-btn py-2 px-2 rounded-lg text-xs font-semibold border transition-all bg-slate-900 text-white border-slate-900'
+              : 'trade-type-btn py-2 px-2 rounded-lg text-xs font-semibold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-50';
+          });
+          renderBreakeven();
+        });
+      });
+
+      // Unit Switch (張 vs 股)
+      function setUnit(unit) {
+        state.unit = unit;
+        const isLot = unit === 'lot';
+        $('unit-lot').className = isLot ? 'px-2 py-0.5 rounded bg-white text-slate-900 shadow-sm' : 'px-2 py-0.5 rounded text-slate-500';
+        $('unit-share').className = !isLot ? 'px-2 py-0.5 rounded bg-white text-slate-900 shadow-sm' : 'px-2 py-0.5 rounded text-slate-500';
+        if (!isLot && $('be-min-fee').value === '20') {
+          $('be-min-fee').value = '1';
+          if ($('be-qty').value === '1') $('be-qty').value = '100';
+        } else if (isLot && $('be-min-fee').value === '1') {
+          $('be-min-fee').value = '20';
+          if ($('be-qty').value === '100') $('be-qty').value = '1';
+        }
+        renderBreakeven();
+      }
+      $('unit-lot').addEventListener('click', () => setUnit('lot'));
+      $('unit-share').addEventListener('click', () => setUnit('share'));
+
+      // Discount Presets
+      document.querySelectorAll('.discount-preset').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          $('be-discount').value = btn.dataset.discount;
+          renderBreakeven();
+        });
+      });
+
+      // Breakeven Inputs
+      ['be-buy-price', 'be-qty', 'be-discount', 'be-min-fee', 'be-sell-price'].forEach((id) => {
+        $(id).addEventListener('input', renderBreakeven);
+      });
+
+      // Margin Ratio Buttons
+      document.querySelectorAll('.margin-ratio-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.marginMode = btn.dataset.marginRatio;
+          document.querySelectorAll('.margin-ratio-btn').forEach((b) => {
+            const active = b.dataset.marginRatio === state.marginMode;
+            b.className = active
+              ? 'margin-ratio-btn py-2 px-2 rounded-lg text-xs font-semibold border transition-all bg-slate-900 text-white border-slate-900'
+              : 'margin-ratio-btn py-2 px-2 rounded-lg text-xs font-semibold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-50';
+          });
+          $('custom-ratio-wrap').classList.toggle('hidden', state.marginMode !== 'custom');
+          renderMargin();
+        });
+      });
+
+      // Margin Inputs
+      $('mg-buy-price').addEventListener('input', () => {
+        syncSliderBounds();
+        const bp = parseFloat($('mg-buy-price').value);
+        if (Number.isFinite(bp) && bp > 0) {
+          const defaultCur = snapToValidTick(bp * 0.85, 'round');
+          $('mg-cur-price').value = defaultCur;
+          $('mg-cur-slider').value = defaultCur;
+        }
+        renderMargin();
+      });
+      $('mg-cur-price').addEventListener('input', () => {
+        const val = parseFloat($('mg-cur-price').value);
+        if (Number.isFinite(val)) $('mg-cur-slider').value = val;
+        renderMargin();
+      });
+      $('mg-cur-slider').addEventListener('input', () => {
+        $('mg-cur-price').value = $('mg-cur-slider').value;
+        renderMargin();
+      });
+      ['mg-lots', 'mg-custom-ratio', 'mg-interest-rate', 'mg-days'].forEach((id) => {
+        $(id).addEventListener('input', renderMargin);
+      });
+
+      // Copy Summary Button
+      $('btn-copy-summary').addEventListener('click', () => {
+        let text = '';
+        if (state.activeTab === 'breakeven') {
+          const bp = $('be-buy-price').value;
+          const qty = $('be-qty').value + (state.unit === 'lot' ? '張' : '股');
+          const bePrice = $('out-be-tick-price').textContent;
+          const note = $('out-be-ticks-note').textContent;
+          text = `【台股損益平衡試算】買進 ${bp} 元 × ${qty}｜最低不賠錢賣價：${bePrice} 元（${note}）`;
+        } else {
+          const bp = $('mg-buy-price').value;
+          const cp = $('mg-cur-price').value;
+          const ratio = $('out-mg-ratio').textContent;
+          const callP = $('out-mg-call-price').textContent;
+          text = `【台股融資維持率試算】買進 ${bp} 元｜現價 ${cp} 元｜維持率：${ratio}｜130% 追繳斷頭價：${callP}`;
+        }
+
+        const fallbackCopy = (str) => {
+          const ta = document.createElement('textarea');
+          ta.value = str;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            document.execCommand('copy');
+            showToast('已複製試算結果，可直接貼到 LINE 或社群！');
+          } catch (e) {
+            showToast('複製失敗，請手動選取文字複製。');
+          }
+          document.body.removeChild(ta);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text)
+            .then(() => showToast('已複製試算結果，可直接貼到 LINE 或社群！'))
+            .catch(() => fallbackCopy(text));
+        } else {
+          fallbackCopy(text);
+        }
+      });
+
+      // Init
+      syncSliderBounds();
+      renderBreakeven();
+      renderMargin();
+    })();
+  </script>
+</body>
+</html>
