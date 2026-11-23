@@ -12,12 +12,23 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://stock-lab-tw.github.io/tw-stock-calc/" />
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "StockLab 台股工具站",
-    "url": "https://stock-lab-tw.github.io/tw-stock-calc/"
-  }
+  [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "StockLab 台股工具站",
+      "url": "https://stock-lab-tw.github.io/tw-stock-calc/"
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "台股損益平衡＆融資斷頭價計算機",
+      "url": "https://stock-lab-tw.github.io/tw-stock-calc/",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "All",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TWD" }
+    }
+  ]
   </script>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -392,6 +403,34 @@
       </div>
     </section>
 
+    <!-- Quick SEO Reference Table -->
+    <section class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <div class="px-5 py-4 border-b border-slate-100">
+        <h2 class="text-sm sm:text-base font-bold text-slate-900">台股常見股價區間：回本檔數與融資斷頭價速查表</h2>
+        <p class="text-xs text-slate-500 mt-0.5">以電子下單手續費 2.8 折、買進 1 張、上市融資 6 成為基準估算</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs sm:text-sm text-left">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-100">
+            <tr>
+              <th class="py-2.5 px-4 font-semibold">買進股價</th>
+              <th class="py-2.5 px-4 font-semibold text-right">每檔跳動</th>
+              <th class="py-2.5 px-4 font-semibold text-right">現股回本</th>
+              <th class="py-2.5 px-4 font-semibold text-right">當沖回本</th>
+              <th class="py-2.5 px-4 font-semibold text-right">130% 斷頭警戒價</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 tabular-nums text-slate-700">
+            <tr><td class="py-2.5 px-4 font-semibold text-slate-900">20 元</td><td class="py-2.5 px-4 text-right">0.05 元</td><td class="py-2.5 px-4 text-right">漲 2 檔 (20.10)</td><td class="py-2.5 px-4 text-right">漲 1 檔 (20.05)</td><td class="py-2.5 px-4 text-right text-rose-600 font-semibold">15.6 元</td></tr>
+            <tr><td class="py-2.5 px-4 font-semibold text-slate-900">50 元</td><td class="py-2.5 px-4 text-right">0.1 元</td><td class="py-2.5 px-4 text-right">漲 2 檔 (50.2)</td><td class="py-2.5 px-4 text-right">漲 2 檔 (50.2)</td><td class="py-2.5 px-4 text-right text-rose-600 font-semibold">39.0 元</td></tr>
+            <tr><td class="py-2.5 px-4 font-semibold text-slate-900">100 元</td><td class="py-2.5 px-4 text-right">0.5 元</td><td class="py-2.5 px-4 text-right">漲 1 檔 (100.5)</td><td class="py-2.5 px-4 text-right">漲 1 檔 (100.5)</td><td class="py-2.5 px-4 text-right text-rose-600 font-semibold">78.0 元</td></tr>
+            <tr><td class="py-2.5 px-4 font-semibold text-slate-900">500 元</td><td class="py-2.5 px-4 text-right">1 元</td><td class="py-2.5 px-4 text-right">漲 2 檔 (502)</td><td class="py-2.5 px-4 text-right">漲 2 檔 (502)</td><td class="py-2.5 px-4 text-right text-rose-600 font-semibold">390.0 元</td></tr>
+            <tr><td class="py-2.5 px-4 font-semibold text-slate-900">1,000 元</td><td class="py-2.5 px-4 text-right">5 元</td><td class="py-2.5 px-4 text-right">漲 1 檔 (1,005)</td><td class="py-2.5 px-4 text-right">漲 1 檔 (1,005)</td><td class="py-2.5 px-4 text-right text-rose-600 font-semibold">780.0 元</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- SEO-Friendly FAQ & Tick Size Reference -->
     <section class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
       <h2 class="text-base font-bold text-slate-900">常見問題與台股交易規則說明</h2>
@@ -434,7 +473,11 @@
 
   <!-- Footer -->
   <footer class="border-t border-slate-200 bg-white mt-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-5 text-center text-xs text-slate-400 space-y-1">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-5 text-center text-xs text-slate-400 space-y-2">
+      <p class="text-slate-500">
+        更多免費實用工具：
+        <a href="https://tool-lab-tw.github.io/jp-calc/" target="_blank" rel="noopener noreferrer" class="text-slate-700 font-medium underline underline-offset-2 hover:text-slate-900">日韓旅遊刷卡 vs. 換現鈔＆退稅計算機</a>
+      </p>
       <p>免責聲明：本試算工具僅供交易成本與風險概念參考，實際手續費折讓、融資成數、利息與整戶追繳規定請依各券商公告為準。</p>
     </div>
   </footer>
